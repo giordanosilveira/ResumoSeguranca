@@ -97,6 +97,14 @@ Um ataque consiste de um conjunto de etapas para ter sucesso:
 5. [Fazer o alvo trabalhar para o atacante.]
 
 ### 1.5.1 nmap 
+O Nmap (Network Mapper) é uma ferramenta poderosa e versátil para a exploração de redes e auditorias de segurança. Aqui estão alguns possíveis tipos de scan no Nmap:
+1. -sT, TCP Connect Scan: Este é o scan mais básico e confiável do Nmap. Ele estabelece uma conexão completa de três vias (SYN, SYN-ACK, ACK) com cada porta alvo. É usado quando o Nmap não tem permissões de root/administrador.
+2. -sS, SYN Scan (Stealth Scan): O SYN Scan é o tipo de scan mais comum e rápido. Ele envia apenas um pacote SYN e espera uma resposta SYN-ACK para indicar que a porta está aberta. Se uma porta está fechada, normalmente retornará um RST. Este scan não completa a conexão, tornando-o menos detectável.
+3. -sP, Ping Scan: O Ping Scan é usado para descobrir quais hosts estão ativos em uma rede. O Nmap envia pacotes ICMP (ping) para verificar se o host responde, sem escanear portas
+4. -sF, FIN Scan: O FIN Scan envia um pacote TCP com o flag FIN (finalização) ativado. Se uma porta estiver fechada, o host deve responder com um pacote RST (reset). Se estiver aberta, não haverá resposta. Este scan pode ser útil para passar por firewalls que bloqueiam scans SYN.
+5. -sN, Null Scan: O Null Scan envia pacotes TCP sem flags ativadas. Se uma porta está fechada, o host deve responder com um pacote RST. Se estiver aberta, não haverá resposta. É outra técnica para evitar firewalls que filtram SYN scans.
+6. -sV, Version Detection: A opção -sV tenta detectar a versão dos serviços que estão rodando nas portas abertas. Isso é útil para identificar vulnerabilidades ou entender mais sobre o alvo.
+
 
 ## 1.6 Atividades subversivas:
 Programas maliciosos podem fazer as seguinttes atividades subversivas/suspeitas:
@@ -118,6 +126,47 @@ Programas maliciosos podem fazer as seguinttes atividades subversivas/suspeitas:
     - Permite **controle** remoto de um sistema.
     - Sabotagem: instalação de um _Trojan_ que modifique a execução de um programa legítimo.
     - DoS
+
+## 1.7 Programas maliciosos
+Malware é um programa, ou um programa que se auto reproduz, o qual tem:
+- Características ou propósitos ofensivos
+- Instala a si mesmo sem a permissão do usuário.
+- Afeta a confidencialidade, integridade e disponibilidade.
+- É capaz de incriminar erroneamente o dono do sistema, ou usuário, por causa da realização de um crime ou um ataque.
+
+### 1.7.1 Vírus
+Um programa que pode infectar outros programas, modificando eles para incluir um possível copia dele mesmo. Vírus são pedaços de código que se adiciona em outros programas, incluindo sistemas operacionais. Não por executar independentemente. Ele precisa de um hospedeiro seja executado para ativá-lo. 
+### 1.7.2 Worms
+Percorre uma rede, procurando por sistemas vulneraveis. Ele se auto replica e é automático. Normalmente, não precisa de interação humana.
+### 1.7.3 Trojans
+Passa por um programa legítimo. Parece real, mas esconde seu propósito malicioso. Provoca o usuário a executá-lo, seja por medo, ou curiosidade.
+### 1.7.4 Keyloggers
+Captura teclas e posição do mouse através de screenshots. Coleta informações sensíveis. Como senhas, PIN's, dados pessoais, documentos, cartão de crédito etc. Pode permanecer invisível ao sistema.
+### 1.7.5 Bot or Zombie
+Esperam comandos de um mestre. Promove ataques contra terceiro. Instruções podem ser dadas via IRC/IM chats, HTTP methods, P2P etc. Usualmente é usado em ataques de DDoS. São vendidos em mercado negros.
+### 1.7.6 Rootkit
+Conjunto de ferramentas para hack usadas depois de um atacante ter quebrado um sistema para ganhar acesso de root.
+
+### 1.7.7 Backdoors
+Permite que um atacante ultrapasse controle de segurança normais. Mira prover acesso escondido para um atacante ou uma aplicação. Pode ser um comnado, ou uma combinação de chaves para acessar um recuros num software. Tipos de acesso:
+- Escalada de privilégio local
+- Execução de comandos remotos individuais.
+- Acesso a linha de comando remotamente
+- Controle do GUI remotamente.
+O comando netcat é muito útil para criar um backdoor, ele é com se fosse um canivete suíço. Um exemplo seria:
+```bash
+nc -l -p 1337 -e /bin/bash
+```
+Esse comando é usado para criar uma backdoor:
+- **nc**: Refere-se ao Netcat, uma ferramenta de rede que pode ler e escrever dados através de conexões de rede usando os protocolos TCP ou UDP.
+- **-l**:  Inicia o Netcat em modo de escuta (listen), ou seja, ele vai aguardar conexões.
+- **-p 1337**: Especifica a porta em que o Netcat vai escutar. No caso, a porta 1337.
+- **-e /bin/bash**: Especifica que, quando uma conexão for estabelecida, o Netcat executará o programa **/bin/bash**. Isso significa que o Netcat vai criar um shell Bash, o que pode permitir ao atacante executar comandos remotamente.
+
+## Exemplo do wideshark
+
+
+
 
 
 
