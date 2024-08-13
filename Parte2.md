@@ -154,6 +154,27 @@ payload += struct.pack("<I", buff_address)  # Sobrescrever o endereço de retorn
 print(payload)
 ```
 
+#### Explicação do payload
+
+A linha `padding = b"\x90" * (64 - len(shellcode))` é utilizada para criar uma sequência de bytes de padding que preencherá o espaço restante no buffer antes do shellcode.
+
+1. **`b"\x90"`**:
+   - `\x90` é a instrução **NOP** (No Operation) em linguagem de montagem (assembly) para processadores da família x86.
+   - Uma instrução NOP simplesmente diz ao processador para "não fazer nada" por um ciclo de clock. É frequentemente usada para criar o que é chamado de **NOP sled**.
+
+2. **`len(shellcode)`**:
+   - Esta função calcula o tamanho (em bytes) do shellcode que você está injetando. Por exemplo, se o shellcode tiver 24 bytes, `len(shellcode)` retornará 24.
+
+3. **`64`**:
+   - Este é o tamanho total do buffer (neste caso, `char buff[64]`), que é de 64 bytes.
+
+4. **`64 - len(shellcode)`**:
+   - Isso calcula quantos bytes de espaço restam no buffer depois de colocar o shellcode. Se o shellcode tiver 24 bytes, então `64 - 24 = 40`. Ou seja, 40 bytes ainda estão livres no buffer.
+
+5. **`b"\x90" * (64 - len(shellcode))`**:
+   - Cria uma sequência de NOPs que preenche o espaço restante no buffer, ou seja, 40 bytes de NOPs (`\x90`), neste exemplo. Isso garante que o shellcode será executado corretamente, mesmo que o endereço exato de início da execução seja um pouco antes do shellcode.
+
+
 Isso gerará um payload que pode ser passado para o programa vulnerável. Quando o programa retorna, ele executará o shellcode, abrindo um terminal.
 
 
