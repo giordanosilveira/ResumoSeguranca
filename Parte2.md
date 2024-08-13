@@ -172,6 +172,30 @@ Manter essa tabela para todo o sistema é custoso por causa de sem tamanho e por
 - **Access Control Lists**: Sujeitos normalmente são agregados em grupos (Owner, Group, everyone), podem ter permissões negativas.
 - **Capability-based Access Control**: Token de acesso (Imagem 3), para acessar um recurso, é preciso apresentar uma capability. Promove uma granularidade fina de controle de acesso e é fácil delegação de direitos de acesso.
 ![Imagem 3](https://github.com/user-attachments/assets/2dd27f18-8ab5-4e32-9199-ff6bed84ab15 "Capability example")
+| **Critério**                | **ACLs (Access Control Lists)**                                  | **Capabilities**                                               |
+|-----------------------------|------------------------------------------------------------------|----------------------------------------------------------------|
+| **Conceito Básico**          | Lista associada a um objeto que define permissões de acesso.     | Atributos atribuídos a sujeitos especificando operações permitidas. |
+| **Associação**               | Associado ao objeto.                                            | Associado ao sujeito (usuário/processo).                        |
+| **Controle**                 | Controle de acesso baseado no objeto.                           | Controle de acesso baseado no sujeito.                          |
+| **Granularidade**            | Permissões definidas para cada objeto individualmente.          | Permissões definidas para cada sujeito individualmente.         |
+| **Segurança**                | Controle centralizado de permissões em objetos.                 | Controle distribuído de permissões, pode ser passado entre sujeitos. |
+| **Revogação de Acesso**      | Simples, removendo a entrada da ACL do objeto.                  | Pode ser complicado, especialmente se capacidades forem transferidas. |
+| **Flexibilidade**            | Alta, pode definir diferentes níveis de acesso para diferentes usuários e grupos. | Menos flexível, pois uma capability é específica a uma operação para um objeto. |
+| **Name Spaces**              | Não é diretamente aplicável ou afetado.                         | Podem ser isolados ou associados a diferentes Name Spaces, limitando o escopo de capacidades. |
+| **Setuid**                   | ACLs não são afetadas diretamente por setuid.                   | Capabilities podem ser influenciadas por setuid, concedendo permissões elevadas temporárias. |
+
+### Anti Vírus
+Software utilizado para prevenir, detectar e remover malwares. Não são perfeitos. Podem agir através de **assinatura** e **Heurísticas e Aprendizado de máquina**:
+- **Assinaturas**: Identifica padrões dos bytes dos arquivos. Funcionamento parecido com IDSs, Existe um BD de assinaturas de malware onde o AV procura por padrões existentes e são de Fácil bypass. Um malware com novo padrão nunca será
+detectado
+- **Heurísticas e Aprendizado de máquina**: pode identificar malwares que não possuem assinaturas no banco de dados, porém é mas sucetível a falsos positivos.
+Existem métodos de ofuscação para ambos os métodos:
+- Encriptação/encoding de código
+- Máquinas virtuais
+- Modificações de comportamentos
+- Mensagens trocadas pela rede não podem ser desfeitas.
+Por fim, quarentena seria: quando detectado, um malware não é removido, mas sim colocado em quarentena com isso um usuário pode retirá-lo em caso de falso positivo.
+
 
 
 
