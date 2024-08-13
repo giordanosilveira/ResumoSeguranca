@@ -3,12 +3,59 @@
 ## Perguntas da prova 2
 
 ### Microkernel x Monolítico
-| Microkernel        | Monolítico           |
-| ------------- |:-------------:|
-|  2,1      |2,2 |
-| 3,1      | 3,2      |
+| Microkernel                                          |                                Monolítico           |
+| -----------------------------------------------------|-----------------------------------------------------|
+| Funcionalidades são adicionadas no espaço de usuário | Funcionalidade são adicionadas ao kernel            |
+| Políticas são adicionadas ao espaço de usuário       | Políticas são adicionadas ao espaço de usuário      |
+| Complexidade do kernel é estável                     | complixdade do kernel aumenta                       |
+
+Quando atacante ganha acesso ao sistema microkernel é muito provável que ele esteja em espaço de usuário. Isso
+mantém o Kernel preservado. 
+
+![Tipos de kernel](https://github.com/user-attachments/assets/a44646cc-bd1c-4766-bac1-2c676d031c9a "Microkernel x Monolítico")
+
 
 ### Como funciona as técnias de Remendos e Trampolins em instrumenção de binários?
+As técnicas de remendos e trampolins são usadas na instrumentação de binários para modificar o comportamento de um programa em tempo de execução, sem alterar significativamente o código original. A ideia é desviar temporariamente o fluxo de execução para um novo código (o trampolim), que realiza alguma tarefa adicional antes de retornar ao fluxo original do programa.
+
+#### 1. **Remendos (Patches)**
+Um remendo é uma modificação direta no binário, onde um trecho do código original é substituído por um novo código. Isso geralmente envolve a substituição de uma ou mais instruções por um salto (por exemplo, um `jmp`) para outro endereço de memória onde o código adicional será executado.
+
+**Exemplo em Pseudocódigo:**
+
+```assembly
+Original:
+0x1000: mov eax, [ebx]
+0x1004: add eax, 5
+0x1008: call functionA
+
+Após o Remendo:
+0x1000: jmp 0x2000      ; Salta para o trampolim
+0x1004: nop             ; No Operation (para preencher o espaço, se necessário)
+0x1008: call functionA
+```
+
+#### 2. **Trampolins (Trampolines)**
+O trampolim é o código para onde o remendo redireciona a execução. Ele executa as instruções que foram sobrescritas pelo remendo e, em seguida, retorna o controle para o programa original, pulando para o endereço imediatamente após o remendo.
+
+**Exemplo em Pseudocódigo:**
+
+```assembly
+Trampolim em 0x2000:
+0x2000: mov eax, [ebx]  ; Reimplementa a instrução original
+0x2004: add eax, 5      ; Continua a instrução original
+0x2008: jmp 0x1008      ; Retorna ao fluxo original
+```
+
+Neste exemplo, o endereço `0x1000` originalmente tinha um `mov eax, [ebx]`, que foi sobrescrito por um `jmp 0x2000`. O trampolim em `0x2000` primeiro executa o `mov eax, [ebx]` e `add eax, 5`, que eram as instruções originais, e depois retorna ao endereço `0x1008`, que é onde o programa deveria continuar após a modificação.
+
+### Aplicações
+Essa técnica é útil em várias situações, como:
+- **Depuração**: Para adicionar verificações ou logs sem interferir no fluxo normal do programa.
+- **Compatibilidade**: Para adaptar binários antigos para trabalhar com novas tecnologias ou restrições.
+- **Segurança**: Para injetar medidas de segurança, como verificações de integridade, em binários existentes.
+
+Ao usar remendos e trampolins, é possível modificar o comportamento de um programa sem reescrever o binário inteiro, permitindo uma instrumentação eficiente e não invasiva.
 
 ### ACL's x Capability's
 
