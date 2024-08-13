@@ -58,6 +58,36 @@ Essa técnica é útil em várias situações, como:
 Ao usar remendos e trampolins, é possível modificar o comportamento de um programa sem reescrever o binário inteiro, permitindo uma instrumentação eficiente e não invasiva.
 
 ### ACL's x Capability's
+Controle de acesso: **Quem** pode acessar, **o que** pode acessa e de que **forma**.
+- Quem: sujeito, agentes
+- O que: objetos
+- Forma: Permissões
+Para o controle de acesso é especificado **políticas** e **mecanismos**: O primeiro fala o que deve ser feito e sua modificação ao longo do tempo, o segundo falam como devem ser feito e implementam a política.
+Matriz de controle de acesso
+
+|       | Obj1 | Obj2 |   Obj3   |  Subj2  |
+|-------|------|------|----------|---------|
+| Subj1 | R    | RW   |          | send    |
+| Subj2 |      | RX   |          | control |
+| Subj3 | RW   |      |  RWX own |  recv   |
+
+Manter essa tabela para todo o sistema é custoso por causa de sem tamanho e por ser altamente dinâmica. Porém é possível guardar por **colunas (ACL)** ou por **linhs (Capability ou CLits**):
+- **Access Control Lists**: Sujeitos normalmente são agregados em grupos (Owner, Group, everyone), podem ter permissões negativas.
+- **Capability-based Access Control**: Token de acesso (Imagem 3), para acessar um recurso, é preciso apresentar uma capability. Promove uma granularidade fina de controle de acesso e é fácil delegação de direitos de acesso.
+![Imagem 3](https://github.com/user-attachments/assets/2dd27f18-8ab5-4e32-9199-ff6bed84ab15 "Capability example")
+![Imagem 4](https://github.com/user-attachments/assets/70fbc453-fba7-4e0b-b296-0a48692481d3 "ACL x Clits")
+A imagem compara duas formas de controlar o acesso a recursos em sistemas computacionais: **Listas de Controle de Acesso (ACLs)** e **Capacidades (Capabilities)**, frequentemente também referidas como **Clists**.
+
+#### ACLs (Access Control Lists):
+- **Representação**: ACLs são listas anexadas a um objeto, como um arquivo ou diretório, que definem quais usuários ou grupos têm permissão de acessar ou modificar o objeto.
+- **Funcionamento**: Quando um usuário tenta acessar um recurso, o sistema verifica a ACL associada ao objeto para determinar se o usuário tem a permissão necessária.
+- **Dependência de mecanismos externos**: ACLs geralmente precisam de outros mecanismos para fornecer uma segurança total, como o uso de setuid para alterar a identidade do usuário temporariamente durante a execução de um programa.
+- **Auditoria**: As ACLs facilitam a auditoria do sistema, pois permitem verificar diretamente quem tem permissão para acessar um determinado objeto.
+
+#### Capacidades (Capabilities ou Clists):
+- **Representação**: Em vez de serem associadas a objetos, as capacidades são atribuídas a um sujeito. Uma capacidade é um token ou referência que dá a um sujeito a permissão de acessar um objeto específico.
+- **Funcionamento**: Um sujeito que possui uma capacidade pode acessar o recurso diretamente sem que o sistema precise verificar uma ACL associada ao objeto.
+- **Independência do usuário**: As capacidades podem ser atribuídas a sujeito sem relação direta com o usuário, permitindo um controle mais fino sobre permissões, como nos casos de fork (criação de processos filhos), menor privilégio (least privilege), e delegação de permissões.
 
 ### BufferOverflow + Canary + Endereço de Retorno
 Para explorar um Buffer Overflow nesse cenário e fazer com que a função que acessa a shell seja executada, mesmo com o NX (No-eXecute) e o canário de pilha habilitados, você pode seguir os seguintes passos:
@@ -311,38 +341,6 @@ Adoção de medidas de seguranças adicionais, normalmente reduzindo a superfici
 - Sandbox
   - Containers
   - Máquinas virtuais
-
-### Controle de acesso
-**Quem** pode acessar, **o que** pode acessa e de que **forma**.
-- Quem: sujeito, agentes
-- O que: objetos
-- Forma: Permissões
-Para o controle de acesso é especificado **políticas** e **mecanismos**: O primeiro fala o que deve ser feito e sua modificação ao longo do tempo, o segundo falam como devem ser feito e implementam a política.
-Matriz de controle de acesso
-
-|       | Obj1 | Obj2 |   Obj3   |  Subj2  |
-|-------|------|------|----------|---------|
-| Subj1 | R    | RW   |          | send    |
-| Subj2 |      | RX   |          | control |
-| Subj3 | RW   |      |  RWX own |  recv   |
-
-Manter essa tabela para todo o sistema é custoso por causa de sem tamanho e por ser altamente dinâmica. Porém é possível guardar por **colunas (ACL)** ou por **linhs (Capability ou CLits**):
-- **Access Control Lists**: Sujeitos normalmente são agregados em grupos (Owner, Group, everyone), podem ter permissões negativas.
-- **Capability-based Access Control**: Token de acesso (Imagem 3), para acessar um recurso, é preciso apresentar uma capability. Promove uma granularidade fina de controle de acesso e é fácil delegação de direitos de acesso.
-![Imagem 3](https://github.com/user-attachments/assets/2dd27f18-8ab5-4e32-9199-ff6bed84ab15 "Capability example")
-![Imagem 4](https://github.com/user-attachments/assets/70fbc453-fba7-4e0b-b296-0a48692481d3 "ACL x Clits")
-A imagem compara duas formas de controlar o acesso a recursos em sistemas computacionais: **Listas de Controle de Acesso (ACLs)** e **Capacidades (Capabilities)**, frequentemente também referidas como **Clists**.
-
-#### ACLs (Access Control Lists):
-- **Representação**: ACLs são listas anexadas a um objeto, como um arquivo ou diretório, que definem quais usuários ou grupos têm permissão de acessar ou modificar o objeto.
-- **Funcionamento**: Quando um usuário tenta acessar um recurso, o sistema verifica a ACL associada ao objeto para determinar se o usuário tem a permissão necessária.
-- **Dependência de mecanismos externos**: ACLs geralmente precisam de outros mecanismos para fornecer uma segurança total, como o uso de setuid para alterar a identidade do usuário temporariamente durante a execução de um programa.
-- **Auditoria**: As ACLs facilitam a auditoria do sistema, pois permitem verificar diretamente quem tem permissão para acessar um determinado objeto.
-
-#### Capacidades (Capabilities ou Clists):
-- **Representação**: Em vez de serem associadas a objetos, as capacidades são atribuídas a um sujeito. Uma capacidade é um token ou referência que dá a um sujeito a permissão de acessar um objeto específico.
-- **Funcionamento**: Um sujeito que possui uma capacidade pode acessar o recurso diretamente sem que o sistema precise verificar uma ACL associada ao objeto.
-- **Independência do usuário**: As capacidades podem ser atribuídas a sujeito sem relação direta com o usuário, permitindo um controle mais fino sobre permissões, como nos casos de fork (criação de processos filhos), menor privilégio (least privilege), e delegação de permissões.
 
 ### Anti Vírus
 Software utilizado para prevenir, detectar e remover malwares. Não são perfeitos. Podem agir através de **assinatura** e **Heurísticas e Aprendizado de máquina**:
