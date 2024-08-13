@@ -172,8 +172,8 @@ Manter essa tabela para todo o sistema é custoso por causa de sem tamanho e por
 - **Access Control Lists**: Sujeitos normalmente são agregados em grupos (Owner, Group, everyone), podem ter permissões negativas.
 - **Capability-based Access Control**: Token de acesso (Imagem 3), para acessar um recurso, é preciso apresentar uma capability. Promove uma granularidade fina de controle de acesso e é fácil delegação de direitos de acesso.
 ![Imagem 3](https://github.com/user-attachments/assets/2dd27f18-8ab5-4e32-9199-ff6bed84ab15 "Capability example")
-| **Critério**                | **ACLs (Access Control Lists)**                                  | **Capabilities**                                               |
-|-----------------------------|------------------------------------------------------------------|----------------------------------------------------------------|
+| **Critério**                | **ACLs (Access Control Lists)**  | **Capabilities**          |
+|-----------------------------|-----------------------------------|--------------------------|
 | **Conceito Básico**          | Lista associada a um objeto que define permissões de acesso.     | Atributos atribuídos a sujeitos especificando operações permitidas. |
 | **Associação**               | Associado ao objeto.                                            | Associado ao sujeito (usuário/processo).                        |
 | **Controle**                 | Controle de acesso baseado no objeto.                           | Controle de acesso baseado no sujeito.                          |
